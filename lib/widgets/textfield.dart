@@ -8,6 +8,7 @@ class CustomTextField extends StatelessWidget {
       this.controller,
       this.enabled = true,
       this.isPassword = false});
+
   final String hint;
   final String label;
   final bool isPassword;

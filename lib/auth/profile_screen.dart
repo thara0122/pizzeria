@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:pizzeria1/auth/auth_service.dart'; // Assuming this is your Auth Service
-import 'package:pizzeria1/widgets/button.dart'; // Assuming this is your custom Button widget
-import 'package:pizzeria1/widgets/textfield.dart'; // Assuming this is your custom TextField widget
+import 'package:pizzeria1/auth/auth_service.dart'; 
+import 'package:pizzeria1/widgets/button.dart'; 
+import 'package:pizzeria1/widgets/textfield.dart'; 
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,6 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
   bool _isEditEnabled = false; // Flag for edit mode
+  final _userImage = AssetImage('images/pizzaBackground2.png'); 
 
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final address = userData?['address'];
 
           // Update text field controllers with retrieved data
-          _nameController.text = name ?? ''; // Handle potential null value
+          _nameController.text = name ?? ''; 
           _emailController.text = email ?? '';
           _addressController.text = address ?? '';
         } else {
@@ -73,6 +74,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _deleteAccount() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Delete user from Firebase Authentication
+        await user.delete();
+
+        // Delete user document from Firestore 
+        final userRef =
+            FirebaseFirestore.instance.collection('users').doc(user.uid);
+        await userRef.delete();
+
+        // Navigate back to login screen
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error Deleting Account: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +108,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               const SizedBox(height: 20.0),
 
-              // Profile Image Section with border and elevated shadow
+
+// Profile Image Section with border and elevated shadow
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(
@@ -105,11 +128,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: CircleAvatar(
                   radius: 75.0,
-                  backgroundImage: AssetImage(
-                      'images/pizzaBackground2.png'), // You can replace with user's actual image URL
+                  backgroundImage: _userImage,
                 ),
               ),
+
               const SizedBox(height: 40.0),
+
               CustomTextField(
                 controller: _nameController,
                 enabled: _isEditEnabled, // Editable only in edit mode
@@ -124,7 +148,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 label: 'Email',
               ),
               const SizedBox(height: 30),
-              // Text fields
               CustomTextField(
                 controller: _addressController,
                 enabled: _isEditEnabled, // Editable only in edit mode
@@ -134,6 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 10),
 
               const SizedBox(height: 30),
+
               // Update button (visible only in edit mode)
               Visibility(
                 visible: _isEditEnabled,
@@ -143,6 +167,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Delete account button
+              TextButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  barrierDismissible: false, // Prevent user from closing dialog without action
+                  builder: (BuildContext context) => AlertDialog(
+                    title: const Text('Delete Account'),
+                    content: const Text(
+                      'Are you sure you want to delete your account? This action is irreversible.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          _deleteAccount();
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Delete'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                child: const Text(
+                  'Delete Account',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+
               // Edit button to toggle edit mode
               ElevatedButton(
                 onPressed: () =>
