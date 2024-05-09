@@ -139,6 +139,7 @@ class _SignupScreenState extends State<SignupScreen> {
         'name': _name.text,
         'email': user.email,
         'address': _address.text,
+        'isAdmin': false,
       });
 
       goToHome(context);

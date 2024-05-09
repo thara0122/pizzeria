@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:pizzeria1/admin/admin_home_screen.dart';
 import 'package:pizzeria1/auth/auth_service.dart';
 import 'package:pizzeria1/auth/forgot_password_screen.dart';
 import 'package:pizzeria1/auth/signup_screen.dart';
@@ -115,13 +116,23 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
 
+  goToAdminHome(BuildContext context) => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+      );
+
   _login() async {
     final user =
         await _auth.loginUserWithEmailAndPassword(_email.text, _password.text);
 
     if (user != null) {
       log("User Logged In");
-      goToHome(context);
+      if (user.isAdmin) {
+        goToAdminHome(context);
+      } else {
+        goToHome(context);
+      }
     }
   }
 }
+

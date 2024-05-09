@@ -1,3 +1,4 @@
+import 'package:pizzeria1/admin/admin_home_screen.dart';
 import 'package:pizzeria1/auth/auth_service.dart';
 import 'package:pizzeria1/auth/login_screen.dart';
 import 'package:pizzeria1/auth/profile_screen.dart';
@@ -19,8 +20,7 @@ class HomeScreen extends StatelessWidget {
       body: Center(
         // Use Center for better alignment
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center, // Center content vertically
+          mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
           children: [
             // Add image container
             SizedBox(
@@ -28,12 +28,12 @@ class HomeScreen extends StatelessWidget {
               width: MediaQuery.of(context).size.width, // Match screen width
               child: Image.asset(
                 'images/pizzaDoddleLogo.png', // Replace with your image path
-                //fit: BoxFit.cover, // Ensure image covers the container
+                //fit: BoxFit.cover, // Ensure image covers the container (optional)
               ),
             ),
             const SizedBox(height: 20),
             const Text(
-              "Welcome To Pizzeria " + "\n   Coming Hot Soon",
+              "Welcome To Pizzeria " + "\n   Coming Hot Soon",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
             ),
             const SizedBox(height: 20),
@@ -50,15 +50,23 @@ class HomeScreen extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed, // Use fixed for 3-5 items
         currentIndex: currentIndex,
-        onTap: (index) {
-          // Handle navigation based on tapped index
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
-            );
-          } else {
-            // Handle other navigation if needed
+        onTap: (index) async {
+          final user = await auth.getCurrentUser();
+          if (user != null) {
+            if (index == 0) {
+              // Do nothing, user is already on Home screen
+            } else if (index == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            } else if (index == 2 && user.isAdmin) {
+              // Navigate to Admin Dashboard only if user is admin
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+              );
+            }
           }
         },
         items: const [
@@ -69,6 +77,10 @@ class HomeScreen extends StatelessWidget {
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),
             label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Admin', // Label for admin dashboard (optional)
           ),
         ],
       ),
