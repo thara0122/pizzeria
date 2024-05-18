@@ -1,3 +1,4 @@
+import 'package:pizzeria1/HomePage.dart';
 import 'package:pizzeria1/admin/admin_home_screen.dart';
 import 'package:pizzeria1/auth/auth_service.dart';
 import 'package:pizzeria1/auth/login_screen.dart';
@@ -20,7 +21,8 @@ class HomeScreen extends StatelessWidget {
       body: Center(
         // Use Center for better alignment
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
+          mainAxisAlignment:
+              MainAxisAlignment.center, // Center content vertically
           children: [
             // Add image container
             SizedBox(
@@ -44,6 +46,12 @@ class HomeScreen extends StatelessWidget {
                 goToLogin(context);
               },
             ),
+            CustomButton(
+              label: "View List Pizza",
+              onPressed: () async {
+                goToViewPizza(context);
+              },
+            ),
           ],
         ),
       ),
@@ -64,7 +72,8 @@ class HomeScreen extends StatelessWidget {
               // Navigate to Admin Dashboard only if user is admin
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+                MaterialPageRoute(
+                    builder: (context) => const AdminDashboardScreen()),
               );
             }
           }
@@ -90,5 +99,10 @@ class HomeScreen extends StatelessWidget {
   void goToLogin(BuildContext context) => Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+
+  void goToViewPizza(BuildContext context) => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
       );
 }

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:pizzeria1/HomePage.dart';
+import 'package:pizzeria1/admin/admin_panel.dart';
 import 'package:pizzeria1/auth/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
