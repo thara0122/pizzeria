@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pizzeria1/admin/admin_panel.dart';
+import 'package:pizzeria1/admin/edit_pizza_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -30,7 +31,15 @@ class AdminDashboardScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => const AdminPanel()),
               ),
               child: const Text('Add New Pizza'),
-            ),
+             ),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const EditPizzaScreen()),
+                  ),
+                  child: const Text('Edit Pizzas'),
+                ),
           ],
         ),
       ),
