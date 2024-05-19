@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:pizzeria1/auth/auth_service.dart'; 
-import 'package:pizzeria1/widgets/button.dart'; 
-import 'package:pizzeria1/widgets/textfield.dart'; 
+import 'package:pizzeria1/auth/auth_service.dart';
+import 'package:pizzeria1/widgets/button.dart';
+import 'package:pizzeria1/widgets/textfield.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,7 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
   bool _isEditEnabled = false; // Flag for edit mode
-  final _userImage = AssetImage('images/pizzaBackground2.png'); 
+  final _userImage = AssetImage('images/pizzaBackground2.png');
 
   @override
   void initState() {
@@ -36,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final address = userData?['address'];
 
           // Update text field controllers with retrieved data
-          _nameController.text = name ?? ''; 
+          _nameController.text = name ?? '';
           _emailController.text = email ?? '';
           _addressController.text = address ?? '';
         } else {
@@ -81,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Delete user from Firebase Authentication
         await user.delete();
 
-        // Delete user document from Firestore 
+        // Delete user document from Firestore
         final userRef =
             FirebaseFirestore.instance.collection('users').doc(user.uid);
         await userRef.delete();
@@ -107,7 +107,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               const SizedBox(height: 20.0),
-
 
 // Profile Image Section with border and elevated shadow
               Container(
@@ -172,7 +171,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               TextButton(
                 onPressed: () => showDialog<void>(
                   context: context,
-                  barrierDismissible: false, // Prevent user from closing dialog without action
+                  barrierDismissible:
+                      false, // Prevent user from closing dialog without action
                   builder: (BuildContext context) => AlertDialog(
                     title: const Text('Delete Account'),
                     content: const Text(

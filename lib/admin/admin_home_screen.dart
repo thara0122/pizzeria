@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pizzeria1/admin/admin_panel.dart';
+import 'package:pizzeria1/admin/addPizza.dart';
 import 'package:pizzeria1/admin/edit_pizza_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -9,39 +9,64 @@ class AdminDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: const Text('Pizza Admin Dashboard'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Welcome Admin!",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "This is your Admin Dashboard. You can manage users, orders, or other admin-specific functionalities here.",
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AdminPanel()),
+      body: Stack(
+        // Use a Stack widget for layering
+        children: [
+          // Background image container
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(
+                    'images/adminBackground.jpg'), // Replace with your image path
+                fit: BoxFit.cover, // Adjust fit as needed (cover, fill, etc.)
               ),
-              child: const Text('Add New Pizza'),
-             ),
-                const SizedBox(width: 20),
-                ElevatedButton(
-                  onPressed: () => Navigator.push(
+            ),
+          ),
+
+          ListView(
+            padding: const EdgeInsets.all(20.0),
+            children: [
+              // Manage Users card
+              Card(
+                elevation: 4.0, // Add some elevation
+                child: ListTile(
+                  onTap: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const EditPizzaScreen()),
+                    MaterialPageRoute(builder: (context) => const AdminPanel()),
                   ),
-                  child: const Text('Edit Pizzas'),
+                  leading: const Icon(Icons.person_add, size: 30),
+                  title: Text(
+                    'Add Pizza',
+                    style: TextStyle(fontSize: 20),
+                  ),
                 ),
-          ],
-        ),
+              ),
+              const SizedBox(height: 20), // Add spacing between cards
+
+              // Edit Pizzas card
+              Card(
+                elevation: 4.0,
+                child: ListTile(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const EditPizzaScreen()),
+                  ),
+                  leading: const Icon(Icons.edit, size: 30),
+                  title: Text(
+                    'Edit Pizzas',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20), // Add spacing between cards
+
+              // Add more cards for additional functionalities
+            ],
+          ),
+        ],
       ),
     );
   }

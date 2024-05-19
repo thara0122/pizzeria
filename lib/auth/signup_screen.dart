@@ -132,7 +132,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (user != null) {
       log("User Created Succesfully");
 
-      // Save user data in Firestore (new code block)
+      // Save user data in Firestore 
       final userRef =
           FirebaseFirestore.instance.collection('users').doc(user.uid);
       await userRef.set({

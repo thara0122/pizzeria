@@ -30,4 +30,10 @@ class PizzaService {
     });
     print('Pizza with ID $id updated');
   }
+
+  Future<void> deletePizza(String id) async {
+    final docRef = _firestore.collection('pizzas').doc(id);
+    await docRef.delete();
+    print('Pizza with ID $id deleted');
+  }
 }

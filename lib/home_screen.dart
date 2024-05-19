@@ -1,10 +1,10 @@
-import 'package:pizzeria1/HomePage.dart';
+import 'package:flutter/material.dart';
+import 'package:pizzeria1/ViewPizzaScreen.dart';
 import 'package:pizzeria1/admin/admin_home_screen.dart';
 import 'package:pizzeria1/auth/auth_service.dart';
 import 'package:pizzeria1/auth/login_screen.dart';
 import 'package:pizzeria1/auth/profile_screen.dart';
 import 'package:pizzeria1/widgets/button.dart';
-import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -17,47 +17,75 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
+        backgroundColor: Colors.redAccent, // Change the app bar color
+        automaticallyImplyLeading: false, // Remove the back button
       ),
-      body: Center(
-        // Use Center for better alignment
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center, // Center content vertically
-          children: [
-            // Add image container
-            SizedBox(
-              height: 200, // Adjust image height as needed
-              width: MediaQuery.of(context).size.width, // Match screen width
-              child: Image.asset(
-                'images/pizzaDoddleLogo.png', // Replace with your image path
-                //fit: BoxFit.cover, // Ensure image covers the container (optional)
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.redAccent, Colors.black],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Add image container with new dimensions and styling
+              SizedBox(
+                height: 350,
+                width: 500,
+                child: Image.asset(
+                  'images/pizzaBackground2.png', // Replace with your image path
+                  fit: BoxFit.contain,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Welcome To Pizzeria " + "\n   Coming Hot Soon",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
-            ),
-            const SizedBox(height: 20),
-            CustomButton(
-              label: "Sign Out",
-              onPressed: () async {
-                await auth.signout();
-                goToLogin(context);
-              },
-            ),
-            CustomButton(
-              label: "View List Pizza",
-              onPressed: () async {
-                goToViewPizza(context);
-              },
-            ),
-          ],
+              const SizedBox(height: 20),
+              const Text(
+                "Welcome To Pizzeria\nCheck It Out",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 30),
+              ModernButton(
+                label: "Order Now",
+                onPressed: () {
+                  goToViewPizza(context);
+                },
+                color: Colors.white, // Update button color
+                textColor: Colors.redAccent, // Update button text color
+              ),
+              const SizedBox(height: 10),
+              ModernButton(
+                label: "Sign Out",
+                onPressed: () async {
+                  try {
+                    await auth.signout();
+                    goToLogin(context);
+                  } catch (e) {
+                    print('Error signing out: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error signing out: $e')),
+                    );
+                  }
+                },
+                color: Colors.white, // Update button color
+                textColor: Colors.redAccent, // Update button text color
+              ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Use fixed for 3-5 items
+        type: BottomNavigationBarType.fixed,
         currentIndex: currentIndex,
+        selectedItemColor: Colors.deepOrange, // Change selected item color
+        unselectedItemColor: Colors.grey, // Change unselected item color
         onTap: (index) async {
           final user = await auth.getCurrentUser();
           if (user != null) {
@@ -69,7 +97,6 @@ class HomeScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
             } else if (index == 2 && user.isAdmin) {
-              // Navigate to Admin Dashboard only if user is admin
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -87,10 +114,6 @@ class HomeScreen extends StatelessWidget {
             icon: Icon(Icons.account_circle),
             label: 'Profile',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Admin', // Label for admin dashboard (optional)
-          ),
         ],
       ),
     );
@@ -103,6 +126,42 @@ class HomeScreen extends StatelessWidget {
 
   void goToViewPizza(BuildContext context) => Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const ViewPizza()),
       );
+}
+
+class ModernButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+  final Color color;
+  final Color textColor;
+
+  const ModernButton({
+    required this.label,
+    required this.onPressed,
+    this.color = Colors.blue,
+    this.textColor = Colors.white,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: textColor, fontSize: 16),
+      ),
+    );
+  }
+}
+
+void main() {
+  runApp(const MaterialApp(home: HomeScreen()));
 }

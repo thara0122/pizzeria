@@ -6,6 +6,7 @@ import 'package:pizzeria1/auth/auth_service.dart';
 import 'package:pizzeria1/auth/forgot_password_screen.dart';
 import 'package:pizzeria1/auth/signup_screen.dart';
 import 'package:pizzeria1/home_screen.dart';
+import 'package:pizzeria1/test.dart';
 import 'package:pizzeria1/widgets/button.dart';
 import 'package:pizzeria1/widgets/textfield.dart';
 
@@ -118,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   goToAdminHome(BuildContext context) => Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+        MaterialPageRoute(builder: (context) => AdminHomePage()),
       );
 
   _login() async {
@@ -135,4 +136,3 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 }
-

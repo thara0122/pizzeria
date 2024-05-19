@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pizzeria1/admin/pizza.dart';
-import 'package:pizzeria1/admin/pizza_service.dart';
+import 'pizza.dart';
+import 'pizza_service.dart';
 
 class EditPizzaScreen extends StatefulWidget {
   const EditPizzaScreen({super.key});
@@ -47,30 +47,26 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
     final description = _descriptionController.text;
     final price = double.parse(_priceController.text);
 
-    // Update only if values have changed
     if (name != _selectedPizza!.name ||
         description != _selectedPizza!.description ||
         price != _selectedPizza!.price) {
-      print("Updating pizza with ID: ${_selectedPizza!.id}");
-      print("New name: $name, description: $description, price: $price");
-
       final updatedPizza = Pizza(
         id: _selectedPizza!.id,
         name: name,
         description: description,
         price: price,
-        imageUrl: _selectedPizza!.imageUrl, // Keep the original image URL
+        imageUrl: _selectedPizza!.imageUrl,
       );
 
-      await _pizzaService.updatePizza(updatedPizza.id!, name, description, price);
-      // Update succeeded
+      await _pizzaService.updatePizza(
+          updatedPizza.id!, name, description, price);
 
       setState(() {
         _pizzas[_pizzas.indexOf(_selectedPizza!)] = updatedPizza;
-        _selectedPizza = null; // Clear selected pizza after update
-        _nameController.text = ""; // Clear text fields after update
-        _descriptionController.text = "";
-        _priceController.text = "";
+        _selectedPizza = null;
+        _nameController.clear();
+        _descriptionController.clear();
+        _priceController.clear();
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,11 +77,47 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
     }
   }
 
+  Future<void> _deletePizza() async {
+    if (_selectedPizza == null) return;
+
+    final confirmation = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Pizza Deletion'),
+        content: const Text('Are you sure you want to delete this pizza?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmation == true) {
+      await _pizzaService.deletePizza(_selectedPizza!.id!);
+      setState(() {
+        _pizzas.remove(_selectedPizza!);
+        _selectedPizza = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pizza deleted successfully'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Pizzas'),
+        backgroundColor: Colors.redAccent,
       ),
       body: _pizzas.isEmpty
           ? const Center(child: CircularProgressIndicator())
@@ -96,10 +128,25 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
                     itemCount: _pizzas.length,
                     itemBuilder: (context, index) {
                       final pizza = _pizzas[index];
-                      return ListTile(
-                        title: Text(pizza.name),
-                        subtitle: Text(pizza.price.toStringAsFixed(2)),
-                        onTap: () => _selectPizza(pizza),
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: ListTile(
+                          title: Text(
+                            pizza.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          subtitle: Text(
+                            '\RM ${pizza.price.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          onTap: () => _selectPizza(pizza),
+                        ),
                       );
                     },
                   ),
@@ -108,23 +155,56 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         TextField(
                           controller: _nameController,
-                          decoration: const InputDecoration(labelText: 'Pizza Name'),
+                          decoration: InputDecoration(
+                            labelText: 'Pizza Name',
+                            border: OutlineInputBorder(),
+                          ),
                         ),
+                        SizedBox(height: 10),
                         TextField(
                           controller: _descriptionController,
-                          decoration: const InputDecoration(labelText: 'Description'),
+                          decoration: InputDecoration(
+                            labelText: 'Description',
+                            border: OutlineInputBorder(),
+                          ),
+                          maxLines: 3,
                         ),
+                        SizedBox(height: 10),
                         TextField(
                           controller: _priceController,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Price'),
+                          decoration: InputDecoration(
+                            labelText: 'Price',
+                            border: OutlineInputBorder(),
+                          ),
                         ),
-                        ElevatedButton(
-                          onPressed: _updatePizza,
-                          child: const Text('Save Changes'),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _updatePizza,
+                              icon: Icon(Icons.save),
+                              label: const Text('Save Pizza'),
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: Colors.black,
+                              ),
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: _deletePizza,
+                              icon: Icon(Icons.delete),
+                              label: const Text('Delete Pizza'),
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: Colors.red,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
