@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'pizza.dart';
 import 'pizza_service.dart';
 
@@ -13,6 +15,7 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
   final _pizzaService = PizzaService();
   List<Pizza> _pizzas = [];
   Pizza? _selectedPizza;
+  File? _selectedImageFile;
 
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -37,6 +40,7 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
       _nameController.text = pizza.name;
       _descriptionController.text = pizza.description;
       _priceController.text = pizza.price.toString();
+      _selectedImageFile = null; // Reset selected image file
     });
   }
 
@@ -47,34 +51,25 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
     final description = _descriptionController.text;
     final price = double.parse(_priceController.text);
 
-    if (name != _selectedPizza!.name ||
-        description != _selectedPizza!.description ||
-        price != _selectedPizza!.price) {
-      final updatedPizza = Pizza(
-        id: _selectedPizza!.id,
-        name: name,
-        description: description,
-        price: price,
-        imageUrl: _selectedPizza!.imageUrl,
-      );
+    final updatedPizza = Pizza(
+      id: _selectedPizza!.id,
+      name: name,
+      description: description,
+      price: price,
+      imageUrl: _selectedPizza!.imageUrl,
+    );
 
-      await _pizzaService.updatePizza(
-          updatedPizza.id!, name, description, price);
+    await _pizzaService.updatePizza(updatedPizza,
+        imageFile: _selectedImageFile);
 
-      setState(() {
-        _pizzas[_pizzas.indexOf(_selectedPizza!)] = updatedPizza;
-        _selectedPizza = null;
-        _nameController.clear();
-        _descriptionController.clear();
-        _priceController.clear();
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No changes detected. Please modify pizza details.'),
-        ),
-      );
-    }
+    setState(() {
+      _pizzas[_pizzas.indexOf(_selectedPizza!)] = updatedPizza;
+      _selectedPizza = null;
+      _nameController.clear();
+      _descriptionController.clear();
+      _priceController.clear();
+      _selectedImageFile = null;
+    });
   }
 
   Future<void> _deletePizza() async {
@@ -99,7 +94,7 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
     );
 
     if (confirmation == true) {
-      await _pizzaService.deletePizza(_selectedPizza!.id!);
+      await _pizzaService.deletePizza(_selectedPizza!.id);
       setState(() {
         _pizzas.remove(_selectedPizza!);
         _selectedPizza = null;
@@ -109,6 +104,17 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
           content: Text('Pizza deleted successfully'),
         ),
       );
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImageFile = File(pickedFile.path);
+      });
     }
   }
 
@@ -132,6 +138,12 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
                         margin: const EdgeInsets.symmetric(
                             vertical: 8.0, horizontal: 16.0),
                         child: ListTile(
+                          leading: Image.network(
+                            pizza.imageUrl,
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                          ),
                           title: Text(
                             pizza.name,
                             style: TextStyle(
@@ -157,6 +169,24 @@ class _EditPizzaScreenState extends State<EditPizzaScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (_selectedImageFile != null)
+                          Image.file(
+                            _selectedImageFile!,
+                            height: 150,
+                            fit: BoxFit.cover,
+                          )
+                        else
+                          Image.network(
+                            _selectedPizza!.imageUrl,
+                            height: 150,
+                            fit: BoxFit.cover,
+                          ),
+                        SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: _pickImage,
+                          child: Text('Change Image'),
+                        ),
+                        SizedBox(height: 10),
                         TextField(
                           controller: _nameController,
                           decoration: InputDecoration(

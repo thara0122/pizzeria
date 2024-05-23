@@ -100,116 +100,136 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Profile'),
+        backgroundColor: Colors.redAccent,
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 20.0),
-
-// Profile Image Section with border and elevated shadow
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey,
-                    width: 1.0,
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 20.0),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10.0,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.redAccent,
+                      width: 3.0,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(80.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 5.0,
-                      blurRadius: 7.0,
-                      offset: const Offset(0.0, 3.0),
+                  child: CircleAvatar(
+                    radius: 75.0,
+                    backgroundImage: _userImage,
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.redAccent,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 2.0,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.camera_alt, color: Colors.white),
+                      onPressed: () {
+                        // Add functionality to change profile picture
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 40.0),
+            CustomTextField(
+              controller: _nameController,
+              enabled: _isEditEnabled, // Editable only in edit mode
+              hint: 'Enter your name',
+              label: 'Name',
+            ),
+            const SizedBox(height: 20),
+            CustomTextField(
+              controller: _emailController,
+              enabled: _isEditEnabled,
+              hint: 'Enter your email',
+              label: 'Email',
+            ),
+            const SizedBox(height: 20),
+            CustomTextField(
+              controller: _addressController,
+              enabled: _isEditEnabled, // Editable only in edit mode
+              hint: 'Enter Address',
+              label: 'Address',
+            ),
+            const SizedBox(height: 30),
+            if (_isEditEnabled)
+              CustomButton(
+                label: 'Update Profile',
+                onPressed: _updateProfile,
+              ),
+            const SizedBox(height: 20),
+            TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                barrierDismissible:
+                    false, // Prevent user from closing dialog without action
+                builder: (BuildContext context) => AlertDialog(
+                  title: const Text('Delete Account'),
+                  content: const Text(
+                    'Are you sure you want to delete your account? This action is irreversible.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        _deleteAccount();
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Delete'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                      ),
                     ),
                   ],
                 ),
-                child: CircleAvatar(
-                  radius: 75.0,
-                  backgroundImage: _userImage,
+              ),
+              child: const Text(
+                'Delete Account',
+                style: TextStyle(color: Colors.redAccent),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => setState(() => _isEditEnabled = !_isEditEnabled),
+              child: Text(_isEditEnabled ? 'Save' : 'Edit'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.lightGreenAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 12.0,
                 ),
               ),
-
-              const SizedBox(height: 40.0),
-
-              CustomTextField(
-                controller: _nameController,
-                enabled: _isEditEnabled, // Editable only in edit mode
-                hint: 'Enter your name',
-                label: 'Name',
-              ),
-              const SizedBox(height: 30),
-              CustomTextField(
-                controller: _emailController,
-                enabled: _isEditEnabled,
-                hint: 'Enter your email',
-                label: 'Email',
-              ),
-              const SizedBox(height: 30),
-              CustomTextField(
-                controller: _addressController,
-                enabled: _isEditEnabled, // Editable only in edit mode
-                hint: 'Enter Address',
-                label: 'Address',
-              ),
-              const SizedBox(height: 10),
-
-              const SizedBox(height: 30),
-
-              // Update button (visible only in edit mode)
-              Visibility(
-                visible: _isEditEnabled,
-                child: CustomButton(
-                  label: 'Update Profile',
-                  onPressed: _updateProfile,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Delete account button
-              TextButton(
-                onPressed: () => showDialog<void>(
-                  context: context,
-                  barrierDismissible:
-                      false, // Prevent user from closing dialog without action
-                  builder: (BuildContext context) => AlertDialog(
-                    title: const Text('Delete Account'),
-                    content: const Text(
-                      'Are you sure you want to delete your account? This action is irreversible.',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          _deleteAccount();
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Delete'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                child: const Text(
-                  'Delete Account',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-
-              // Edit button to toggle edit mode
-              ElevatedButton(
-                onPressed: () =>
-                    setState(() => _isEditEnabled = !_isEditEnabled),
-                child: Text(_isEditEnabled ? 'Save' : 'Edit'),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -16,7 +16,7 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        //   title: const Text('Home'),
         backgroundColor: Colors.redAccent, // Change the app bar color
         automaticallyImplyLeading: false, // Remove the back button
       ),

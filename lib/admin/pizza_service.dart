@@ -1,18 +1,45 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pizzeria1/admin/pizza.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'pizza.dart';
 
 class PizzaService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  Future<void> addPizza(String name, String description, double price, {required String imageUrl}) async {
-    final docRef = _firestore.collection('pizzas').doc(); // Create a new document
-    await docRef.set({
-      'name': name,
-      'description': description,
-      'price': price,
-      'imageUrl': '', // Optional: Add a field for image URL if you're using images
-    });
-    print('New pizza added: $name');
+  Future<String> _uploadImage(File imageFile) async {
+    try {
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference ref = _storage.ref().child('pizza_images').child(fileName);
+      UploadTask uploadTask = ref.putFile(imageFile);
+      TaskSnapshot taskSnapshot = await uploadTask;
+      return await taskSnapshot.ref.getDownloadURL();
+    } catch (e) {
+      throw Exception('Error uploading image: $e');
+    }
+  }
+
+  Future<void> addPizza(String name, String description, double price,
+      {File? imageFile}) async {
+    try {
+      String? imageUrl;
+      if (imageFile != null) {
+        imageUrl = await _uploadImage(imageFile);
+      }
+
+      final docRef =
+          _firestore.collection('pizzas').doc(); // Create a new document
+      await docRef.set({
+        'name': name,
+        'description': description,
+        'price': price,
+        'imageUrl': imageUrl ?? '', // Save the image URL if available
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      print('New pizza added: $name');
+    } catch (e) {
+      throw Exception('Error adding pizza: $e');
+    }
   }
 
   Future<List<Pizza>> fetchPizzas() async {
@@ -20,15 +47,24 @@ class PizzaService {
     return snapshot.docs.map((doc) => Pizza.fromFirestore(doc)).toList();
   }
 
-  // Optional: Function to update pizza details (if needed)
-  Future<void> updatePizza(String id, String name, String description, double price) async {
-    final docRef = _firestore.collection('pizzas').doc(id);
-    await docRef.update({
-      'name': name,
-      'description': description,
-      'price': price,
-    });
-    print('Pizza with ID $id updated');
+  Future<void> updatePizza(Pizza pizza, {File? imageFile}) async {
+    try {
+      String? imageUrl = pizza.imageUrl;
+      if (imageFile != null) {
+        imageUrl = await _uploadImage(imageFile);
+      }
+
+      final docRef = _firestore.collection('pizzas').doc(pizza.id);
+      await docRef.update({
+        'name': pizza.name,
+        'description': pizza.description,
+        'price': pizza.price,
+        'imageUrl': imageUrl,
+      });
+      print('Pizza with ID ${pizza.id} updated');
+    } catch (e) {
+      throw Exception('Error updating pizza: $e');
+    }
   }
 
   Future<void> deletePizza(String id) async {

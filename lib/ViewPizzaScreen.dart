@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pizzeria1/PizzaDetailScreen.dart';
 import 'package:pizzeria1/admin/pizza.dart';
 import 'package:pizzeria1/admin/pizza_service.dart';
 import 'package:pizzeria1/auth/login_screen.dart';
@@ -12,20 +13,42 @@ class ViewPizza extends StatefulWidget {
 
 class _ViewPizzaState extends State<ViewPizza> {
   List<Pizza> _pizzas = []; // State variable to store fetched pizzas
-
+  List<Pizza> _filteredPizzas = []; // State variable to store filtered pizzas
   final _pizzaService = PizzaService();
+  final _searchController =
+      TextEditingController(); // Controller for search input
 
   @override
   void initState() {
     super.initState();
     _fetchPizzas(); // Fetch pizzas on widget initialization
+
+    // Listen to changes in the search controller
+    _searchController.addListener(_filterPizzas);
   }
 
   Future<void> _fetchPizzas() async {
     final pizzas = await _pizzaService.fetchPizzas();
     setState(() {
       _pizzas = pizzas;
+      _filteredPizzas = pizzas; // Initialize filtered pizzas with all pizzas
     });
+  }
+
+  void _filterPizzas() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredPizzas = _pizzas.where((pizza) {
+        return pizza.name.toLowerCase().contains(query) ||
+            pizza.description.toLowerCase().contains(query);
+      }).toList();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose(); // Dispose the controller
+    super.dispose();
   }
 
   @override
@@ -67,6 +90,7 @@ class _ViewPizzaState extends State<ViewPizza> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: TextField(
+                        controller: _searchController,
                         decoration: InputDecoration(
                           hintText: 'Search Here...',
                           prefixIcon: const Icon(Icons.search),
@@ -104,9 +128,9 @@ class _ViewPizzaState extends State<ViewPizza> {
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: _pizzas.length,
+                        itemCount: _filteredPizzas.length,
                         itemBuilder: (context, index) {
-                          final pizza = _pizzas[index];
+                          final pizza = _filteredPizzas[index];
                           return PizzaCard(pizza: pizza);
                         },
                       ),
@@ -144,65 +168,80 @@ class PizzaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      elevation: 5,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
-                //   child: Image.network(
-                //  //   pizza.imageUrl ?? 'https://via.placeholder.com/150',
-                //  //   fit: BoxFit.cover,
-                //   ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PizzaDetailScreen(pizza: pizza),
+          ),
+        );
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        elevation: 5,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: pizza.imageUrl.isNotEmpty
+                      ? Image.network(
+                          pizza.imageUrl,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.network(
+                          'https://via.placeholder.com/150',
+                          fit: BoxFit.cover,
+                        ),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              pizza.name,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: 8),
+              Text(
+                pizza.name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.star, color: Colors.redAccent, size: 16),
-                Text(
-                  '5.0',
-                  style: TextStyle(
-                    color: Colors.redAccent,
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.star, color: Colors.redAccent, size: 16),
+                  Text(
+                    '5.0',
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '\RM ${pizza.price.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '\$${pizza.price.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+                child: const Icon(Icons.add_shopping_cart_sharp),
               ),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-              child: const Icon(Icons.add_shopping_cart_sharp),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

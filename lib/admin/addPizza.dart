@@ -36,19 +36,34 @@ class _AdminPanelState extends State<AdminPanel> {
     final name = _nameController.text;
     final description = _descriptionController.text;
     final price = double.tryParse(_priceController.text) ?? 0.0;
-    final imageUrl = _imageUrlController.text;
 
-    await _pizzaService.addPizza(name, description, price, imageUrl: imageUrl);
+    if (name.isEmpty || description.isEmpty || price <= 0) {
+      // Show an error message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill out all fields')),
+      );
+      return;
+    }
 
-    _nameController.clear();
-    _descriptionController.clear();
-    _priceController.clear();
-    _imageUrlController.clear();
-    _imageFile = null;
-  }
+    try {
+      await _pizzaService.addPizza(name, description, price, imageFile: _imageFile);
 
-  Future<String> _uploadImage(File imageFile) async {
-    return 'https://placeholder.com/image.jpg';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Pizza added successfully')),
+      );
+
+      _nameController.clear();
+      _descriptionController.clear();
+      _priceController.clear();
+      _imageUrlController.clear();
+      setState(() {
+        _imageFile = null;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add pizza: $e')),
+      );
+    }
   }
 
   @override
