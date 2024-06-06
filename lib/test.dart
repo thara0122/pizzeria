@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:pizzeria1/admin/AdminUpdateOrderStatusScreen.dart';
 import 'package:pizzeria1/admin/addPizza.dart';
 import 'package:pizzeria1/admin/edit_pizza_screen.dart';
 import 'package:pizzeria1/auth/auth_service.dart';
 import 'package:pizzeria1/auth/login_screen.dart';
+
 
 class AdminHomePage extends StatelessWidget {
   @override
@@ -96,10 +98,13 @@ class AdminHomePage extends StatelessWidget {
                   _buildMenuButton(
                     context,
                     icon: Icons.manage_search,
-                    label: 'Sales Management',
-                    onTap: () {
-                      // Add functionality
-                    },
+                    label: 'Orders',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              const AdminUpdateOrderStatusScreen()),
+                    ),
                   ),
                 ],
               ),

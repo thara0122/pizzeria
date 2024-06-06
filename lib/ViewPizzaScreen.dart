@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pizzeria1/PizzaDetailScreen.dart';
-import 'package:pizzeria1/admin/pizza.dart';
-import 'package:pizzeria1/admin/pizza_service.dart';
-import 'package:pizzeria1/auth/login_screen.dart';
+import 'package:pizzeria1/UserOrderStatusScreen.dart';
+import 'package:pizzeria1/cart/CartScreen.dart';
+import 'package:pizzeria1/cart/CartService.dart';
+// Import the UserOrderStatusScreen
+import 'package:provider/provider.dart';
+import 'admin/pizza.dart';
+import 'admin/pizza_service.dart';
 
 class ViewPizza extends StatefulWidget {
   const ViewPizza({Key? key}) : super(key: key);
@@ -12,18 +16,15 @@ class ViewPizza extends StatefulWidget {
 }
 
 class _ViewPizzaState extends State<ViewPizza> {
-  List<Pizza> _pizzas = []; // State variable to store fetched pizzas
-  List<Pizza> _filteredPizzas = []; // State variable to store filtered pizzas
+  List<Pizza> _pizzas = [];
+  List<Pizza> _filteredPizzas = [];
   final _pizzaService = PizzaService();
-  final _searchController =
-      TextEditingController(); // Controller for search input
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _fetchPizzas(); // Fetch pizzas on widget initialization
-
-    // Listen to changes in the search controller
+    _fetchPizzas();
     _searchController.addListener(_filterPizzas);
   }
 
@@ -31,7 +32,7 @@ class _ViewPizzaState extends State<ViewPizza> {
     final pizzas = await _pizzaService.fetchPizzas();
     setState(() {
       _pizzas = pizzas;
-      _filteredPizzas = pizzas; // Initialize filtered pizzas with all pizzas
+      _filteredPizzas = pizzas;
     });
   }
 
@@ -47,7 +48,7 @@ class _ViewPizzaState extends State<ViewPizza> {
 
   @override
   void dispose() {
-    _searchController.dispose(); // Dispose the controller
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -65,7 +66,25 @@ class _ViewPizzaState extends State<ViewPizza> {
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CartScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.receipt_long), // New icon button for viewing user orders
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserOrderStatusScreen(userId: 'eOCKTR6X7SZxpNBXMyW79VGtmoA2'), // Pass the user ID
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -231,7 +250,14 @@ class PizzaCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Provider.of<CartService>(context, listen: false).addToCart(pizza);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${pizza.name} added to cart!'),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.redAccent,
                   shape: RoundedRectangleBorder(

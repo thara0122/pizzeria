@@ -1,27 +1,30 @@
-import 'dart:async';
-
-import 'package:pizzeria1/ViewPizzaScreen.dart';
-import 'package:pizzeria1/admin/addPizza.dart';
-import 'package:pizzeria1/auth/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:pizzeria1/auth/profile_screen.dart';
-import 'package:pizzeria1/home_screen.dart';
+import 'package:pizzeria1/ViewPizzaScreen.dart';
+import 'package:pizzeria1/auth/login_screen.dart';
+import 'package:pizzeria1/cart/CartService.dart';
+import 'package:provider/provider.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp();
-
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => CartService(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-        debugShowCheckedModeBanner: false, home: LoginScreen());
+    return MaterialApp(
+      title: 'Pizzeria',
+      theme: ThemeData(
+        primarySwatch: Colors.red,
+      ),
+      home: LoginScreen(),
+    );
   }
 }
