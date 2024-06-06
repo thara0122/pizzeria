@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:pizzeria1/admin/pizza.dart';
+import 'package:pizzeria1/cart/CartService.dart';
+import 'package:provider/provider.dart';
+import 'admin/pizza.dart';
 
 class PizzaDetailScreen extends StatelessWidget {
   final Pizza pizza;
@@ -54,6 +56,24 @@ class PizzaDetailScreen extends StatelessWidget {
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Provider.of<CartService>(context, listen: false).addToCart(pizza);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${pizza.name} added to cart!'),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child: Text('Add to Cart'),
             ),
           ],
         ),
