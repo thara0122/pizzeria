@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:pizzeria1/admin/PizzaOrders.dart';
-import 'pizza.dart';
+import 'package:pizzeria1/admin/pizza.dart';
 
 class PizzaService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -88,5 +88,10 @@ class PizzaService {
     } catch (e) {
       throw Exception('Error adding order: $e');
     }
+  }
+
+  Future<List<PizzaOrder>> fetchOrders() async {
+    final snapshot = await _firestore.collection('orders').get();
+    return snapshot.docs.map((doc) => PizzaOrder.fromFirestore(doc)).toList();
   }
 }
