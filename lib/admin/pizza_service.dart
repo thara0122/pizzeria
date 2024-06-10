@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:pizzeria1/admin/PizzaOrders.dart';
 import 'pizza.dart';
 
 class PizzaService {
@@ -71,5 +72,21 @@ class PizzaService {
     final docRef = _firestore.collection('pizzas').doc(id);
     await docRef.delete();
     print('Pizza with ID $id deleted');
+  }
+
+  Future<void> addOrder(PizzaOrder order) async {
+    try {
+      final docRef = _firestore.collection('orders').doc(); // Create a new document
+      await docRef.set({
+        'address': order.address,
+        'totalPrice': order.totalPrice,
+        'items': order.items.map((item) => item.toMap()).toList(),
+        'timestamp': FieldValue.serverTimestamp(),
+        'status': order.status,
+      });
+      print('Order added');
+    } catch (e) {
+      throw Exception('Error adding order: $e');
+    }
   }
 }
