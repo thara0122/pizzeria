@@ -116,6 +116,16 @@ class AdminHomePage extends StatelessWidget {
                           builder: (context) => const SalesReportScreen()),
                     ),
                   ),
+                  _buildMenuButton(
+                    context,
+                    icon: Icons.download,
+                    label: 'Download',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SalesReportScreen()),
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -3,6 +3,7 @@ import 'package:pizzeria1/admin/PizzaOrders.dart';
 import 'package:pizzeria1/admin/pizza_service.dart';
 
 
+
 class SalesReportScreen extends StatefulWidget {
   const SalesReportScreen({super.key});
 
@@ -73,3 +74,29 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     return "${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}:${timestamp.second.toString().padLeft(2, '0')}";
   }
 }
+
+  Future<void> _downloadSalesReport() async {
+    if (download == null) return;
+
+    final confirmation = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('download PDF'),
+        content: const Text('Are you sure you want to downloaD PDF?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Download PDF'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmation == true) {
+      await _generateSalesReportPDF(salesReports);
+    }
+  }
