@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:pizzeria1/admin/PizzaOrders.dart';
 import 'package:pizzeria1/admin/pizza_service.dart';
-
-
+import 'package:printing/printing.dart';
+import 'package:flutter/material.dart';
 
 class SalesReportScreen extends StatefulWidget {
   const SalesReportScreen({super.key});
@@ -19,6 +20,41 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
   void initState() {
     super.initState();
     _ordersFuture = _pizzaService.fetchOrders();
+  }
+
+  Future<void> _generatePdf(List<PizzaOrder> orders) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            children: [
+              pw.Text('Pizzeria Sales Report', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 20),
+              pw.Table.fromTextArray(
+                context: context,
+                data: <List<String>>[
+                  <String>['Order ID', 'Customer', 'Total Price', 'Items', 'Timestamp', 'Status'],
+                  ...orders.map((order) => [
+                        order.id,
+                        order.address,
+                        '\$${order.totalPrice.toStringAsFixed(2)}',
+                        order.items.length.toString(),
+                        _formatDate(order.timestamp),
+                        order.status,
+                      ])
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
 
   @override
@@ -39,30 +75,43 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
             return const Center(child: Text('No sales data available.'));
           } else {
             final orders = snapshot.data!;
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SingleChildScrollView(
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Order ID')),
-                    DataColumn(label: Text('Customer')),
-                    DataColumn(label: Text('Total Price')),
-                    DataColumn(label: Text('Items')),
-                    DataColumn(label: Text('Timestamp')),
-                    DataColumn(label: Text('Status')),
-                  ],
-                  rows: orders.map((order) {
-                    return DataRow(cells: [
-                      DataCell(Text(order.id)),
-                      DataCell(Text(order.address)), // Assuming address is customer name
-                      DataCell(Text('\$${order.totalPrice.toStringAsFixed(2)}')),
-                      DataCell(Text(order.items.length.toString())), // Number of items
-                      DataCell(Text(_formatDate(order.timestamp))),
-                      DataCell(Text(order.status)),
-                    ]);
-                  }).toList(),
+            return Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SingleChildScrollView(
+                      child: DataTable(
+                        columns: const [
+                          DataColumn(label: Text('Order ID')),
+                          DataColumn(label: Text('Customer')),
+                          DataColumn(label: Text('Total Price')),
+                          DataColumn(label: Text('Items')),
+                          DataColumn(label: Text('Timestamp')),
+                          DataColumn(label: Text('Status')),
+                        ],
+                        rows: orders.map((order) {
+                          return DataRow(cells: [
+                            DataCell(Text(order.id)),
+                            DataCell(Text(order.address)), // Assuming address is customer name
+                            DataCell(Text('\$${order.totalPrice.toStringAsFixed(2)}')),
+                            DataCell(Text(order.items.length.toString())), // Number of items
+                            DataCell(Text(_formatDate(order.timestamp))),
+                            DataCell(Text(order.status)),
+                          ]);
+                        }).toList(),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: () => _generatePdf(orders),
+                    child: const Text('Generate PDF'),
+                  ),
+                ),
+              ],
             );
           }
         },
@@ -74,29 +123,3 @@ class _SalesReportScreenState extends State<SalesReportScreen> {
     return "${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}:${timestamp.second.toString().padLeft(2, '0')}";
   }
 }
-
-  Future<void> _downloadSalesReport() async {
-    if (download == null) return;
-
-    final confirmation = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('download PDF'),
-        content: const Text('Are you sure you want to downloaD PDF?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Download PDF'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmation == true) {
-      await _generateSalesReportPDF(salesReports);
-    }
-  }

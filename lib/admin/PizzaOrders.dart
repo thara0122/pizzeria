@@ -1,4 +1,3 @@
-// order.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pizzeria1/cart/CartItem.dart';
 
@@ -8,7 +7,8 @@ class PizzaOrder {
   final double totalPrice;
   final List<CartItem> items;
   final DateTime timestamp;
-  final String status; // Added status field
+  final String status;
+  final String userId; // Add userId field
 
   PizzaOrder({
     required this.id,
@@ -16,7 +16,8 @@ class PizzaOrder {
     required this.totalPrice,
     required this.items,
     required this.timestamp,
-    required this.status, // Added status parameter
+    required this.status,
+    required this.userId, // Initialize userId
   });
 
   factory PizzaOrder.fromFirestore(DocumentSnapshot doc) {
@@ -29,7 +30,19 @@ class PizzaOrder {
           .map((item) => CartItem.fromMap(item))
           .toList(),
       timestamp: (data['timestamp'] as Timestamp).toDate(),
-      status: data['status'] ?? 'Pending', // Default status
+      status: data['status'] ?? 'Pending',
+      userId: data['userId'], // Assign userId from Firestore data
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'address': address,
+      'totalPrice': totalPrice,
+      'items': items.map((item) => item.toMap()).toList(),
+      'timestamp': timestamp,
+      'status': status,
+      'userId': userId, // Include userId in the Firestore document
+    };
   }
 }

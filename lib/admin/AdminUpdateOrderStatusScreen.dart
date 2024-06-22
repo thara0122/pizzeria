@@ -1,8 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pizzeria1/admin/PizzaOrders.dart';
-
 
 class AdminUpdateOrderStatusScreen extends StatelessWidget {
   const AdminUpdateOrderStatusScreen({Key? key}) : super(key: key);
@@ -96,12 +94,21 @@ class AdminUpdateOrderStatusScreen extends StatelessWidget {
                           final item = order.items[itemIndex];
                           return ListTile(
                             title: Text(item.pizza.name),
-                            subtitle: Text(
-                              'Quantity: ${item.quantity}\n'
-                              'Price: RM ${(item.pizza.price * item.quantity).toStringAsFixed(2)}\n'
-                              'Extra Cheese: ${item.extraCheese ? "Yes" : "No"}\n'
-                              'Extra Meat: ${item.extraMeat ? "Yes" : "No"}\n'
-                              'Size: ${item.size}',
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Quantity: ${item.quantity}\n'
+                                  'Price: RM ${(item.pizza.price * item.quantity).toStringAsFixed(2)}\n'
+                                  'Extra Cheese: ${item.extraCheese ? "Yes" : "No"}\n'
+                                  'Extra Meat: ${item.extraMeat ? "Yes" : "No"}\n'
+                                  'Size: ${item.size}',
+                                ),
+                                if (item.addOns.isNotEmpty)
+                                  Text(
+                                    'Add-Ons: ${item.addOns.map((addOn) => addOn.name).join(', ')}',
+                                  ),
+                              ],
                             ),
                           );
                         },

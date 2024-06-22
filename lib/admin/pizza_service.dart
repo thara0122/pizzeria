@@ -77,13 +77,7 @@ class PizzaService {
   Future<void> addOrder(PizzaOrder order) async {
     try {
       final docRef = _firestore.collection('orders').doc(); // Create a new document
-      await docRef.set({
-        'address': order.address,
-        'totalPrice': order.totalPrice,
-        'items': order.items.map((item) => item.toMap()).toList(),
-        'timestamp': FieldValue.serverTimestamp(),
-        'status': order.status,
-      });
+      await docRef.set(order.toMap()); // Use the toMap method to save the order
       print('Order added');
     } catch (e) {
       throw Exception('Error adding order: $e');

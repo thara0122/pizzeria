@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pizzeria1/OrderHistoryScreen.dart';
 import 'package:pizzeria1/PizzaDetailScreen.dart';
 import 'package:pizzeria1/UserOrderStatusScreen.dart';
 import 'package:pizzeria1/cart/CartScreen.dart';
@@ -76,12 +77,14 @@ class _ViewPizzaState extends State<ViewPizza> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.receipt_long), // New icon button for viewing user orders
+            icon: const Icon(
+                Icons.receipt_long), // New icon button for viewing user orders
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => UserOrderStatusScreen(userId: 'eOCKTR6X7SZxpNBXMyW79VGtmoA2'), // Pass the user ID
+                  builder: (context) =>
+                      OrderHistoryScreen(), // Pass the user ID
                 ),
               );
             },
@@ -251,7 +254,8 @@ class PizzaCard extends StatelessWidget {
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () {
-                  Provider.of<CartService>(context, listen: false).addToCart(pizza);
+                  Provider.of<CartService>(context, listen: false)
+                      .addToCart(pizza);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('${pizza.name} added to cart!'),
