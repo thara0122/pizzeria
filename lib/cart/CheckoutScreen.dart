@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:pizzeria1/admin/PizzaOrders.dart';
+import 'package:pizzeria1/cart/addon.dart';
 import 'package:provider/provider.dart';
 import 'package:pizzeria1/cart/CartService.dart';
-import 'package:pizzeria1/cart/cartitem.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pizzeria1/admin/pizza_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CheckoutScreen extends StatefulWidget {
   @override
@@ -10,6 +12,13 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  final List<AddOn> availableAddOns = [
+    AddOn(name: 'Garlic Bread', price: 5.0),
+    AddOn(name: 'Creamy Mushroom Soup', price: 4.9),
+    AddOn(name: 'Mamamia Meatballs', price: 17.9),
+    AddOn(name: 'Cheesy Wedges', price: 3.5),
+  ];
+
   final _addressController = TextEditingController();
 
   @override
@@ -18,67 +27,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.dispose();
   }
 
-  Future<void> _placeOrder(BuildContext context) async {
-    final cartService = Provider.of<CartService>(context, listen: false);
-    final cart = cartService.cart;
-
-    if (cart.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Your cart is empty!')),
-      );
-      return;
-    }
-
-    if (_addressController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your address!')),
-      );
-      return;
-    }
-
-    try {
-      // Create an order object
-      final order = {
-        'items': cart.map((cartItem) => {
-              'id': cartItem.pizza.id,
-              'name': cartItem.pizza.name,
-              'price': cartItem.pizza.price,
-              'quantity': cartItem.quantity,
-            }).toList(),
-        'address': _addressController.text,
-        'totalPrice': cart.fold(0.0, (sum, item) => sum + (item.pizza.price * item.quantity)),
-        'timestamp': FieldValue.serverTimestamp(),
-      };
-
-      // Save the order to Firestore
-      await FirebaseFirestore.instance.collection('orders').add(order);
-
-      // Clear the cart
-      cartService.clearCart();
-
-      // Show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Order placed successfully!')),
-      );
-
-      // Navigate back to the home screen or order confirmation screen
-      Navigator.of(context).pop();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to place order: $e')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context);
-    final cart = cartService.cart;
+    final cartItems = cartService.cart;
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Checkout'),
-        backgroundColor: Colors.redAccent,
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -86,51 +43,146 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Your Order',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.redAccent,
-              ),
+              'Your basket',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
             Expanded(
               child: ListView.builder(
-                itemCount: cart.length,
+                itemCount: cartItems.length,
                 itemBuilder: (context, index) {
-                  final cartItem = cart[index];
-                  return ListTile(
-                    leading: cartItem.pizza.imageUrl.isNotEmpty
-                        ? Image.network(cartItem.pizza.imageUrl, width: 50, height: 50)
-                        : Image.network('https://via.placeholder.com/150', width: 50, height: 50),
-                    title: Text(cartItem.pizza.name),
-                    subtitle: Text('Quantity: ${cartItem.quantity}'),
-                    trailing: Text('\RM ${cartItem.pizza.price.toStringAsFixed(2)}'),
+                  final item = cartItems[index];
+                  return Card(
+                    child: ListTile(
+                      //  leading: Image.asset('assets/images/${item.pizza.image}'), // Ensure you have pizza images in your assets
+                      title: Text(item.pizza.name),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quantity: ${item.quantity}, Extra Cheese: ${item.extraCheese}, Extra Meat: ${item.extraMeat}, Size: ${item.size}',
+                          ),
+                          Text(
+                            'Add-Ons: ${item.addOns.map((addOn) => addOn.name).join(', ')}',
+                          ),
+                        ],
+                      ),
+                      trailing: Text(
+                        '\RM ${(item.pizza.price * item.quantity + item.addOns.fold(0, (sum, addOn) => sum + addOn.price)).toStringAsFixed(2)}',
+                      ),
+                    ),
                   );
                 },
               ),
             ),
+            SizedBox(height: 20),
+            Text(
+              'You may also like',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: availableAddOns.length,
+                itemBuilder: (context, index) {
+                  final addOn = availableAddOns[index];
+                  return Card(
+                    child: Container(
+                      width: 120,
+                      child: Column(
+                        children: [
+                          //Image.asset('assets/images/${addOn.image}'), // Ensure you have add-on images in your assets
+                          Text(addOn.name),
+                          Text('\RM ${addOn.price.toStringAsFixed(2)}'),
+                          ElevatedButton(
+                            onPressed: () {
+                              if (cartItems.isNotEmpty) {
+                                cartService.addAddOnToCartItem(0, addOn);
+                              }
+                            },
+                            child: Text('Add'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(height: 20),
             TextField(
               controller: _addressController,
               decoration: InputDecoration(
-                hintText: 'Enter your address',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
+                labelText: 'Enter your address',
               ),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => _placeOrder(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
+              onPressed: () async {
+                final totalPrice = cartItems.fold(
+                  0.0,
+                  (total, current) =>
+                      total +
+                      current.pizza.price * current.quantity +
+                      current.addOns.fold(
+                          0.0, (addOnTotal, addOn) => addOnTotal + addOn.price),
+                );
+
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content:
+                          Text('You need to be logged in to place an order.'),
+                    ),
+                  );
+                  return;
+                }
+                final userId = user.uid;
+
+                final order = PizzaOrder(
+                  id: '',
+                  address: _addressController.text,
+                  totalPrice: totalPrice,
+                  items: cartItems,
+                  timestamp: DateTime.now(),
+                  status: 'Pending',
+                  userId: userId,
+                );
+
+                try {
+                  final pizzaService = PizzaService();
+                  await pizzaService.addOrder(order);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Order placed successfully!'),
+                    ),
+                  );
+                  cartService.clearCart();
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error placing order: $e'),
+                    ),
+                  );
+                }
+              },
               child: Text('Place Order'),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Order Summary',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Subtotal: \RM ${cartService.subtotal.toStringAsFixed(2)}',
+            ),
+            Divider(),
+            Text(
+              'Total: \RM ${cartService.total.toStringAsFixed(2)}',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ],
         ),

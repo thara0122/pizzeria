@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'pizza.dart';
+import 'package:pizzeria1/admin/PizzaOrders.dart';
+import 'package:pizzeria1/admin/pizza.dart';
 
 class PizzaService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -71,5 +72,20 @@ class PizzaService {
     final docRef = _firestore.collection('pizzas').doc(id);
     await docRef.delete();
     print('Pizza with ID $id deleted');
+  }
+
+  Future<void> addOrder(PizzaOrder order) async {
+    try {
+      final docRef = _firestore.collection('orders').doc(); // Create a new document
+      await docRef.set(order.toMap()); // Use the toMap method to save the order
+      print('Order added');
+    } catch (e) {
+      throw Exception('Error adding order: $e');
+    }
+  }
+
+  Future<List<PizzaOrder>> fetchOrders() async {
+    final snapshot = await _firestore.collection('orders').get();
+    return snapshot.docs.map((doc) => PizzaOrder.fromFirestore(doc)).toList();
   }
 }

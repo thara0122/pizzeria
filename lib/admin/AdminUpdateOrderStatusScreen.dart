@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:pizzeria1/admin/PizzaOrders.dart';
 
 class AdminUpdateOrderStatusScreen extends StatelessWidget {
@@ -8,18 +7,24 @@ class AdminUpdateOrderStatusScreen extends StatelessWidget {
 
   Future<List<PizzaOrder>> _fetchOrders() async {
     try {
-      final snapshot = await FirebaseFirestore.instance.collection('orders').get();
+      final snapshot =
+          await FirebaseFirestore.instance.collection('orders').get();
       print('Fetched ${snapshot.docs.length} orders');
-      return snapshot.docs.map((doc) {
-        try {
-          final order = PizzaOrder.fromFirestore(doc);
-          print('Order Data: ${order.id}, ${order.address}, ${order.totalPrice}');
-          return order;
-        } catch (e) {
-          print('Error parsing order data: $e');
-          return null;
-        }
-      }).where((order) => order != null).cast<PizzaOrder>().toList();
+      return snapshot.docs
+          .map((doc) {
+            try {
+              final order = PizzaOrder.fromFirestore(doc);
+              print(
+                  'Order Data: ${order.id}, ${order.address}, ${order.totalPrice}');
+              return order;
+            } catch (e) {
+              print('Error parsing order data: $e');
+              return null;
+            }
+          })
+          .where((order) => order != null)
+          .cast<PizzaOrder>()
+          .toList();
     } catch (e) {
       print('Error fetching orders: $e');
       rethrow;
@@ -28,7 +33,10 @@ class AdminUpdateOrderStatusScreen extends StatelessWidget {
 
   Future<void> _updateOrderStatus(String orderId, String status) async {
     try {
-      await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+      await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(orderId)
+          .update({
         'status': status,
       });
     } catch (e) {
@@ -51,7 +59,8 @@ class AdminUpdateOrderStatusScreen extends StatelessWidget {
             return Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error fetching orders: ${snapshot.error}'));
+            return Center(
+                child: Text('Error fetching orders: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(child: Text('No orders found'));
@@ -74,7 +83,8 @@ class AdminUpdateOrderStatusScreen extends StatelessWidget {
                       'Order ${order.id}',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text('Status: ${order.status}\nTotal: RM ${order.totalPrice.toStringAsFixed(2)}'),
+                    subtitle: Text(
+                        'Status: ${order.status}\nTotal: RM ${order.totalPrice.toStringAsFixed(2)}'),
                     children: [
                       ListView.builder(
                         shrinkWrap: true,
@@ -84,7 +94,22 @@ class AdminUpdateOrderStatusScreen extends StatelessWidget {
                           final item = order.items[itemIndex];
                           return ListTile(
                             title: Text(item.pizza.name),
-                            subtitle: Text('Quantity: ${item.quantity}\nPrice: RM ${(item.pizza.price * item.quantity).toStringAsFixed(2)}'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Quantity: ${item.quantity}\n'
+                                  'Price: RM ${(item.pizza.price * item.quantity).toStringAsFixed(2)}\n'
+                                  'Extra Cheese: ${item.extraCheese ? "Yes" : "No"}\n'
+                                  'Extra Meat: ${item.extraMeat ? "Yes" : "No"}\n'
+                                  'Size: ${item.size}',
+                                ),
+                                if (item.addOns.isNotEmpty)
+                                  Text(
+                                    'Add-Ons: ${item.addOns.map((addOn) => addOn.name).join(', ')}',
+                                  ),
+                              ],
+                            ),
                           );
                         },
                       ),

@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pizzeria1/auth/auth_service.dart';
 import 'package:pizzeria1/auth/login_screen.dart';
@@ -22,6 +21,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _address = TextEditingController();
+
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -53,61 +54,94 @@ class _SignupScreenState extends State<SignupScreen> {
             // Center content vertically within the Stack
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 25),
-              child: Column(
-                children: [
-                  const Spacer(),
-                  const Text(
-                    "Signup",
-                    style: TextStyle(fontSize: 40, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(
-                    height: 50,
-                  ),
-                  CustomTextField(
-                    hint: "Enter Name",
-                    label: "Name",
-                    controller: _name,
-                  ),
-                  const SizedBox(height: 20),
-                  CustomTextField(
-                    hint: "Enter Email",
-                    label: "Email",
-                    controller: _email,
-                  ),
-                  const SizedBox(height: 20),
-                  CustomTextField(
-                    hint: "Enter Password",
-                    label: "Password",
-                    isPassword: true,
-                    controller: _password,
-                  ),
-                  const SizedBox(height: 20),
-                  CustomTextField(
-                    hint: "Enter Address",
-                    label: "Address",
-                    controller: _address,
-                  ),
-                  const SizedBox(height: 30),
-                  CustomButton(
-                    label: "Signup",
-                    onPressed: _signup,
-                  ),
-                  const SizedBox(height: 5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Already have an account? "),
-                      InkWell(
-                        onTap: () => goToLogin(context),
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(color: Colors.red),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    const Spacer(),
+                    const Text(
+                      "Signup",
+                      style:
+                          TextStyle(fontSize: 40, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(
+                      height: 50,
+                    ),
+                    CustomTextField(
+                      hint: "Enter Name",
+                      label: "Name",
+                      controller: _name,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    CustomTextField(
+                      hint: "Enter Email",
+                      label: "Email",
+                      controller: _email,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                            .hasMatch(value)) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    CustomTextField(
+                      hint: "Enter Password",
+                      label: "Password",
+                      isPassword: true,
+                      controller: _password,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your password';
+                        } else if (value.length < 6) {
+                          return 'Password must be at least 6 characters long';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    CustomTextField(
+                      hint: "Enter Address",
+                      label: "Address",
+                      controller: _address,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your address';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 30),
+                    CustomButton(
+                      label: "Signup",
+                      onPressed: _signup,
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Already have an account? "),
+                        InkWell(
+                          onTap: () => goToLogin(context),
+                          child: const Text(
+                            "Login",
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                ],
+                      ],
+                    ),
+                    const Spacer(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -127,22 +161,30 @@ class _SignupScreenState extends State<SignupScreen> {
       );
 
   _signup() async {
-    final user =
-        await _auth.createUserWithEmailAndPassword(_email.text, _password.text);
-    if (user != null) {
-      log("User Created Succesfully");
+    if (_formKey.currentState?.validate() ?? false) {
+      final user = await _auth.createUserWithEmailAndPassword(
+          _email.text, _password.text);
+      if (user != null) {
+        log("User Created Successfully");
 
-      // Save user data in Firestore 
-      final userRef =
-          FirebaseFirestore.instance.collection('users').doc(user.uid);
-      await userRef.set({
-        'name': _name.text,
-        'email': user.email,
-        'address': _address.text,
-        'isAdmin': false,
-      });
+        // Save user data in Firestore
+        final userRef =
+            FirebaseFirestore.instance.collection('users').doc(user.uid);
+        await userRef.set({
+          'name': _name.text,
+          'email': user.email,
+          'address': _address.text,
+          'isAdmin': false,
+        });
 
-      goToHome(context);
+        goToHome(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Signup failed. Please try again.'),
+          ),
+        );
+      }
     }
   }
 }

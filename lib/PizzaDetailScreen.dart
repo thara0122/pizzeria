@@ -3,16 +3,25 @@ import 'package:pizzeria1/cart/CartService.dart';
 import 'package:provider/provider.dart';
 import 'admin/pizza.dart';
 
-class PizzaDetailScreen extends StatelessWidget {
+class PizzaDetailScreen extends StatefulWidget {
   final Pizza pizza;
 
   const PizzaDetailScreen({required this.pizza, Key? key}) : super(key: key);
 
   @override
+  _PizzaDetailScreenState createState() => _PizzaDetailScreenState();
+}
+
+class _PizzaDetailScreenState extends State<PizzaDetailScreen> {
+  bool extraCheese = false;
+  bool extraMeat = false;
+  String size = 'regular';
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(pizza.name),
+        title: Text(widget.pizza.name),
         backgroundColor: Colors.redAccent,
       ),
       body: Padding(
@@ -22,9 +31,9 @@ class PizzaDetailScreen extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8.0),
-              child: pizza.imageUrl.isNotEmpty
+              child: widget.pizza.imageUrl.isNotEmpty
                   ? Image.network(
-                      pizza.imageUrl,
+                      widget.pizza.imageUrl,
                       height: 200,
                       fit: BoxFit.cover,
                     )
@@ -36,7 +45,7 @@ class PizzaDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              pizza.name,
+              widget.pizza.name,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -44,26 +53,64 @@ class PizzaDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              pizza.description,
+              widget.pizza.description,
               style: const TextStyle(
                 fontSize: 16,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              '\RM ${pizza.price.toStringAsFixed(2)}',
+              '\RM ${widget.pizza.price.toStringAsFixed(2)}',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 16),
+            SwitchListTile(
+              title: Text('Extra Cheese'),
+              value: extraCheese,
+              onChanged: (bool value) {
+                setState(() {
+                  extraCheese = value;
+                });
+              },
+            ),
+            SwitchListTile(
+              title: Text('Extra Meat'),
+              value: extraMeat,
+              onChanged: (bool value) {
+                setState(() {
+                  extraMeat = value;
+                });
+              },
+            ),
+            DropdownButton<String>(
+              value: size,
+              items: ['personal', 'regular', 'large'].map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  size = newValue!;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                Provider.of<CartService>(context, listen: false).addToCart(pizza);
+                Provider.of<CartService>(context, listen: false).addToCart(
+                  widget.pizza,
+                  extraCheese: extraCheese,
+                  extraMeat: extraMeat,
+                  size: size,
+                );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('${pizza.name} added to cart!'),
+                    content: Text('${widget.pizza.name} added to cart!'),
                   ),
                 );
               },
